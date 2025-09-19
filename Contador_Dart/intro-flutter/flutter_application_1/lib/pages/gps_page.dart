@@ -120,7 +120,8 @@ class _GpsPageState extends State<GpsPage> {
                                   _controller.currentPosition!.latitude,
                                   _controller.currentPosition!.longitude,
                                 ),
-                                initialZoom: 18.0, // Zoom maior para mais precisão
+                                initialZoom:
+                                    18.0, // Zoom maior para mais precisão
                                 minZoom: 3.0,
                                 maxZoom: 19.0, // Zoom máximo aumentado
                               ),
