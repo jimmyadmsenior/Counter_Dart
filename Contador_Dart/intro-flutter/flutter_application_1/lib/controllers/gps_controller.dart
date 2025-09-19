@@ -22,8 +22,8 @@ class GpsController extends ChangeNotifier {
   String _statusMessage = 'Toque no botão para obter localização';
 
   // ===== SEÇÃO: COMPONENTES DO MAPA =====
-  // Controller para gerenciar o mapa
-  final MapController _mapController = MapController();
+  // Controller para gerenciar o mapa - inicialização tardia segura
+  MapController? _mapController;
 
   // Lista de marcadores para exibir no mapa
   List<Marker> _markers = [];
@@ -40,10 +40,18 @@ class GpsController extends ChangeNotifier {
   Position? get currentPosition => _currentPosition;
   bool get isLoading => _isLoading;
   String get statusMessage => _statusMessage;
-  MapController get mapController => _mapController;
+  MapController? get mapController => _mapController;
   List<Marker> get markers => _markers;
   String? get address => _address;
   String? get postalCode => _postalCode;
+
+  // ===== SEÇÃO: INICIALIZAÇÃO =====
+  /// Inicializa o controller do mapa de forma segura
+  void initializeMapController() {
+    if (_mapController == null) {
+      _mapController = MapController();
+    }
+  }
 
   // ===== SEÇÃO: OBTENÇÃO DE LOCALIZAÇÃO =====
   /// Obtém a localização atual do dispositivo
@@ -85,9 +93,10 @@ class GpsController extends ChangeNotifier {
         return;
       }
 
-      // Obter posição atual com alta precisão
+      // Obter posição atual com máxima precisão e timeout
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        desiredAccuracy: LocationAccuracy.bestForNavigation, // Máxima precisão
+        timeLimit: const Duration(seconds: 15), // Timeout de 15 segundos
       );
 
       // Salvar posição e atualizar status
@@ -102,7 +111,19 @@ class GpsController extends ChangeNotifier {
       // Atualizar marcador no mapa
       _updateMapMarker(position.latitude, position.longitude);
     } catch (e) {
-      _statusMessage = 'Erro ao obter localização: $e';
+      String errorMessage = 'Erro ao obter localização';
+      
+      if (e is TimeoutException) {
+        errorMessage = 'Timeout: Localização demorou muito para responder';
+      } else if (e is LocationServiceDisabledException) {
+        errorMessage = 'Serviço de localização está desabilitado';
+      } else if (e is PermissionDeniedException) {
+        errorMessage = 'Permissão de localização negada';
+      } else {
+        errorMessage = 'Erro ao obter localização: ${e.toString()}';
+      }
+      
+      _statusMessage = errorMessage;
       _isLoading = false;
       notifyListeners();
     }
@@ -127,9 +148,23 @@ class GpsController extends ChangeNotifier {
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
         // Montar endereço completo a partir dos componentes
-        _address =
-            '${place.street}, ${place.subLocality}, ${place.locality} ${place.administrativeArea}, ${place.subAdministrativeArea}';
-        _postalCode = place.postalCode;
+        List<String> addressParts = [];
+        
+        if (place.street != null && place.street!.isNotEmpty) {
+          addressParts.add(place.street!);
+        }
+        if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+          addressParts.add(place.subLocality!);
+        }
+        if (place.locality != null && place.locality!.isNotEmpty) {
+          addressParts.add(place.locality!);
+        }
+        if (place.administrativeArea != null && place.administrativeArea!.isNotEmpty) {
+          addressParts.add(place.administrativeArea!);
+        }
+        
+        _address = addressParts.isNotEmpty ? addressParts.join(', ') : 'Endereço não encontrado';
+        _postalCode = place.postalCode ?? 'CEP não encontrado';
         notifyListeners();
       }
     } catch (e) {
@@ -158,7 +193,22 @@ class GpsController extends ChangeNotifier {
     ];
     notifyListeners();
 
-    // Mover câmera para a localização atual com zoom apropriado
-    _mapController.move(LatLng(latitude, longitude), 16.0);
+    // Mover câmera para a localização atual com zoom apropriado (apenas se o controller estiver inicializado)
+    if (_mapController != null) {
+      try {
+        _mapController!.move(LatLng(latitude, longitude), 18.0); // Zoom maior para mais detalhes
+      } catch (e) {
+        if (kDebugMode) {
+          print('Erro ao mover câmera do mapa: $e');
+        }
+      }
+    }
+  }
+
+  // ===== SEÇÃO: CLEANUP =====
+  @override
+  void dispose() {
+    _mapController = null;
+    super.dispose();
   }
 }

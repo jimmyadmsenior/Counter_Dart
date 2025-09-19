@@ -17,6 +17,7 @@ class _GpsPageState extends State<GpsPage> {
   void initState() {
     super.initState();
     _controller = GpsController();
+    _controller.initializeMapController(); // Inicializar o MapController
     _controller.addListener(_onControllerUpdate);
   }
 
@@ -90,7 +91,8 @@ class _GpsPageState extends State<GpsPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (_controller.currentPosition != null) ...[
+              if (_controller.currentPosition != null &&
+                  _controller.mapController != null) ...[
                 // Mapa
                 Card(
                   child: Padding(
@@ -112,15 +114,15 @@ class _GpsPageState extends State<GpsPage> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: FlutterMap(
-                              mapController: _controller.mapController,
+                              mapController: _controller.mapController!,
                               options: MapOptions(
                                 initialCenter: LatLng(
                                   _controller.currentPosition!.latitude,
                                   _controller.currentPosition!.longitude,
                                 ),
-                                initialZoom: 16.0,
+                                initialZoom: 18.0, // Zoom maior para mais precisão
                                 minZoom: 3.0,
-                                maxZoom: 18.0,
+                                maxZoom: 19.0, // Zoom máximo aumentado
                               ),
                               children: [
                                 TileLayer(
@@ -177,23 +179,27 @@ class _GpsPageState extends State<GpsPage> {
                         const SizedBox(height: 12),
                         _buildInfoRow(
                           'Latitude:',
-                          '${_controller.currentPosition!.latitude.toStringAsFixed(6)}°',
+                          '${_controller.currentPosition!.latitude.toStringAsFixed(8)}°',
                         ),
                         _buildInfoRow(
                           'Longitude:',
-                          '${_controller.currentPosition!.longitude.toStringAsFixed(6)}°',
+                          '${_controller.currentPosition!.longitude.toStringAsFixed(8)}°',
                         ),
                         _buildInfoRow(
                           'Altitude:',
                           '${_controller.currentPosition!.altitude.toStringAsFixed(2)} m',
                         ),
                         _buildInfoRow(
-                          'Precisão:',
+                          'Precisão Horizontal:',
                           '${_controller.currentPosition!.accuracy.toStringAsFixed(2)} m',
                         ),
                         _buildInfoRow(
+                          'Precisão Vertical:',
+                          '${_controller.currentPosition!.altitudeAccuracy.toStringAsFixed(2)} m',
+                        ),
+                        _buildInfoRow(
                           'Velocidade:',
-                          '${_controller.currentPosition!.speed.toStringAsFixed(2)} m/s',
+                          '${_controller.currentPosition!.speed.toStringAsFixed(2)} m/s (${(_controller.currentPosition!.speed * 3.6).toStringAsFixed(2)} km/h)',
                         ),
                         _buildInfoRow(
                           'Direção:',
