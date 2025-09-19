@@ -1,0 +1,23 @@
+# Dependências necessárias para a funcionalidade GPS
+# Adicione estas linhas ao seu arquivo pubspec.yaml na seção dependencies:
+
+# GPS e localização
+geolocator: ^10.1.0          # Para obter coordenadas GPS
+geocoding: ^2.1.1            # Para converter coordenadas em endereços
+
+# Mapa interativo  
+flutter_map: ^6.1.0         # Widget de mapa do Flutter
+latlong2: ^0.9.1             # Para trabalhar com coordenadas latitude/longitude
+
+# Exemplo de como adicionar ao pubspec.yaml:
+# dependencies:
+#   flutter:
+#     sdk: flutter
+#   geolocator: ^10.1.0
+#   geocoding: ^2.1.1  
+#   flutter_map: ^6.1.0
+#   latlong2: ^0.9.1
+#   # suas outras dependências...
+
+# Após adicionar as dependências, execute:
+# flutter pub get
