@@ -48,9 +48,7 @@ class GpsController extends ChangeNotifier {
   // ===== SEÇÃO: INICIALIZAÇÃO =====
   /// Inicializa o controller do mapa de forma segura
   void initializeMapController() {
-    if (_mapController == null) {
-      _mapController = MapController();
-    }
+    _mapController ??= MapController();
   }
 
   // ===== SEÇÃO: OBTENÇÃO DE LOCALIZAÇÃO =====
