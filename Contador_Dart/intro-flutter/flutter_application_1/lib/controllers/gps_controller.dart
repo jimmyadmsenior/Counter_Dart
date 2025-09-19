@@ -110,7 +110,7 @@ class GpsController extends ChangeNotifier {
       _updateMapMarker(position.latitude, position.longitude);
     } catch (e) {
       String errorMessage = 'Erro ao obter localização';
-      
+
       if (e is TimeoutException) {
         errorMessage = 'Timeout: Localização demorou muito para responder';
       } else if (e is LocationServiceDisabledException) {
@@ -120,7 +120,7 @@ class GpsController extends ChangeNotifier {
       } else {
         errorMessage = 'Erro ao obter localização: ${e.toString()}';
       }
-      
+
       _statusMessage = errorMessage;
       _isLoading = false;
       notifyListeners();
@@ -147,7 +147,7 @@ class GpsController extends ChangeNotifier {
         Placemark place = placemarks[0];
         // Montar endereço completo a partir dos componentes
         List<String> addressParts = [];
-        
+
         if (place.street != null && place.street!.isNotEmpty) {
           addressParts.add(place.street!);
         }
@@ -157,11 +157,14 @@ class GpsController extends ChangeNotifier {
         if (place.locality != null && place.locality!.isNotEmpty) {
           addressParts.add(place.locality!);
         }
-        if (place.administrativeArea != null && place.administrativeArea!.isNotEmpty) {
+        if (place.administrativeArea != null &&
+            place.administrativeArea!.isNotEmpty) {
           addressParts.add(place.administrativeArea!);
         }
-        
-        _address = addressParts.isNotEmpty ? addressParts.join(', ') : 'Endereço não encontrado';
+
+        _address = addressParts.isNotEmpty
+            ? addressParts.join(', ')
+            : 'Endereço não encontrado';
         _postalCode = place.postalCode ?? 'CEP não encontrado';
         notifyListeners();
       }
@@ -194,7 +197,8 @@ class GpsController extends ChangeNotifier {
     // Mover câmera para a localização atual com zoom apropriado (apenas se o controller estiver inicializado)
     if (_mapController != null) {
       try {
-        _mapController!.move(LatLng(latitude, longitude), 18.0); // Zoom maior para mais detalhes
+        _mapController!.move(
+            LatLng(latitude, longitude), 18.0); // Zoom maior para mais detalhes
       } catch (e) {
         if (kDebugMode) {
           print('Erro ao mover câmera do mapa: $e');
